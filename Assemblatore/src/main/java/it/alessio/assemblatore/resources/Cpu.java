@@ -54,7 +54,8 @@ public class Cpu
         this.brandCpu = brandCpu;
         this.frequency = frequency;
     }
-    
+
+
     //Getters and setters
 
     public String getIdCpu() {

@@ -5,6 +5,7 @@
  */
 package it.alessio.assemblatore.resources;
 
+import it.alessio.assemblatore.service.Service;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -32,6 +33,7 @@ public class CpuResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCpu(@PathParam("id") String id){
         System.out.println("GET /cpu/"+id);
+        Service.getQuantita(Integer.valueOf(id));
         return Response.status(200).entity("{\"Status\":\"Success!!!\"}").build();
     }
     
@@ -49,7 +51,11 @@ public class CpuResource {
     @Consumes(MediaType.APPLICATION_JSON)
     
     public Response postCpu(@PathParam("id") String id)
-    {
+            
+    {   
+        System.out.println("POST /cpu/"+id);
+        Service.setQuantita(Integer.valueOf(id),new Cpu(id, 300));
+       // System.out.println("POST /cpu/"+id);
         return Response.status(200).entity("Cpu created!!!").build();
     }
     
