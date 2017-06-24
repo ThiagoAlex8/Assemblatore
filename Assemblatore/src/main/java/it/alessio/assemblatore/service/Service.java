@@ -12,6 +12,7 @@ package it.alessio.assemblatore.service;
 
 
 import com.sun.net.httpserver.HttpServer;
+import it.alessio.assemblatore.resources.CpuResource;
 
 import java.net.URI;
 import javax.ws.rs.core.UriBuilder;
@@ -28,9 +29,10 @@ public class Service {
         System.out.println("Starting Jersey REST-full Service with JDK HTTP Server ...");
             
        
-        URI baseUri = UriBuilder.fromUri("http://localhost/v1").port(8080).build();
+        URI baseUri = UriBuilder.fromUri("http://localhost/v1").port(8081).build();
         ResourceConfig config = new ResourceConfig();
         config.register(new Ping());
+        config.register(new CpuResource());
         HttpServer server = JdkHttpServerFactory.createHttpServer(baseUri, config);
 }
 }
