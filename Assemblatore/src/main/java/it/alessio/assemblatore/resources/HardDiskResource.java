@@ -21,27 +21,27 @@ import javax.ws.rs.core.Response;
  *
  * @author aless
  */
-@Path("ram")
-public class RamResource {
-    public RamResource()
+@Path("hd")
+public class HardDiskResource {
+    public HardDiskResource()
     {
     }
     
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRam(@PathParam("id") String id){
-        System.out.println("GET /ram/"+id);
-        Service.getQuantitaRam(Integer.valueOf(id));
-        return Response.status(200).entity("{\"Status\":\"Ram (id: " + id +" Success!!!\"}").build();
+    public Response getHD(@PathParam("id") String id){
+        System.out.println("GET /hd/"+id);
+        Service.getQuantitaHD(Integer.valueOf(id));
+        return Response.status(200).entity("{\"Status\":\"Hard disk (id: " + id +") Success!!!\"}").build();
     }
     
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response putRam(@PathParam("id") String id, String content){
-        System.out.println("PUT /ram/"+id);
-        return Response.status(200).entity("RAM (id: " + id +" updated!!!").build();
+    public Response putHD(@PathParam("id") String id, String content){
+        System.out.println("PUT /hd/"+id);
+        return Response.status(200).entity("Hard disk (id: " + id + ") updated!!!").build();
         
     }
     
@@ -52,18 +52,19 @@ public class RamResource {
     public Response postCpu(@PathParam("id") String id)
             
     {   
-        System.out.println("POST /ram/"+id);
-        Service.setQuantitaRam(Integer.valueOf(id),new Ram(id, 300));
+        System.out.println("POST /hd/"+id);
+        Service.setQuantitaHD(Integer.valueOf(id),new HardDisk(id, 300));
        // System.out.println("POST /cpu/"+id);
-        return Response.status(200).entity("Ram (id: " + id +" created!!!").build();
+        return Response.status(200).entity("Hard disk (id: " + id + ") created!!!").build();
     }
     
-    @DELETE
+     @DELETE
     @Path("{id}")
     @Produces (MediaType.APPLICATION_JSON)
     
     public Response deleteCpu(@PathParam("id") String id)
     {
-        return Response.status(200).entity("Ram (id: " + id +" deleted!!!").build();
+        return Response.status(200).entity("Hard disk (id: " + id +" deleted!!!").build();
     }
+    
 }

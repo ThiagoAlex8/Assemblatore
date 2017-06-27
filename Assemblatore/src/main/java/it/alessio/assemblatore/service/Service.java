@@ -14,22 +14,23 @@ package it.alessio.assemblatore.service;
 import com.sun.net.httpserver.HttpServer;
 import it.alessio.assemblatore.resources.Cpu;
 import it.alessio.assemblatore.resources.CpuResource;
-
+import it.alessio.assemblatore.resources.HardDisk;
+import it.alessio.assemblatore.resources.HardDiskResource;
 import java.net.URI;
 import javax.ws.rs.core.UriBuilder;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import it.alessio.assemblatore.resources.Ping;
 import it.alessio.assemblatore.resources.Ram;
-import java.util.ArrayList;
+import it.alessio.assemblatore.resources.RamResource;
 import java.util.Arrays;
-import javax.ws.rs.core.Response;
 
 public class Service {
     
     //private static ArrayList<Cpu> quantita;
     private static Cpu quantita[];
     private static Ram size[];
+    private static HardDisk sizeHD[];
     
     public static String getQuantita(int pos) {
         //return quantita.get(pos);
@@ -52,6 +53,13 @@ public class Service {
         size[pos] = ram;
     }
     
+    public static void setQuantitaHD(int pos, HardDisk hd) {
+        sizeHD[pos] = hd;
+    }
+
+    public static String getQuantitaHD(int pos) {
+       return Arrays.toString(sizeHD);
+    }
     
     
     public static void main(String[] args)
@@ -59,6 +67,7 @@ public class Service {
         //quantita = new ArrayList<Cpu>();
         quantita = new Cpu[20];
         size = new Ram[20];
+        sizeHD = new HardDisk[20];
         System.out.println("Starting Jersey REST-full Service with JDK HTTP Server ...");
         
         
@@ -66,6 +75,10 @@ public class Service {
         ResourceConfig config = new ResourceConfig();
         config.register(new Ping());
         config.register(new CpuResource());
+        config.register(new RamResource());
+        config.register(new HardDiskResource());
         HttpServer server = JdkHttpServerFactory.createHttpServer(baseUri, config);
 }
+
+    
 }

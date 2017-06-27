@@ -34,7 +34,7 @@ public class CpuResource {
     public Response getCpu(@PathParam("id") String id){
         System.out.println("GET /cpu/"+id);
         Service.getQuantita(Integer.valueOf(id));
-        return Response.status(200).entity("{\"Status\":\"Success!!!\"}").build();
+        return Response.status(200).entity("{\"Status\":\"Cpu (id: " + id +"Success!!!\"}").build();
     }
     
     @PUT
@@ -42,7 +42,7 @@ public class CpuResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response putCpu(@PathParam("id") String id, String content){
         System.out.println("PUT /cpu/"+id);
-        return Response.status(200).entity("Cpu updated!!!").build();
+        return Response.status(200).entity("Cpu (id: " + id + "updated!!! ").build();
         
     }
     
@@ -65,7 +65,7 @@ public class CpuResource {
     
     public Response deleteCpu(@PathParam("id") String id)
     {
-        return Response.status(200).entity("Cpu deleted!!!").build();
+        return Response.status(200).entity("Cpu (id: " + id +" deleted!!!").build();
     }
     
 }
