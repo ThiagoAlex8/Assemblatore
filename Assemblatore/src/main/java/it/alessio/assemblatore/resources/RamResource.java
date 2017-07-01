@@ -5,7 +5,12 @@
  */
 package it.alessio.assemblatore.resources;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.alessio.assemblatore.service.Service;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -14,8 +19,10 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 /**
  *
@@ -23,6 +30,8 @@ import javax.ws.rs.core.Response;
  */
 @Path("ram")
 public class RamResource {
+    @Context
+    private UriInfo context;
     public RamResource()
     {
     }
@@ -30,16 +39,27 @@ public class RamResource {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRam(@PathParam("id") String id){
-        System.out.println("GET /ram/"+id);
-        Service.getQuantitaRam(Integer.valueOf(id));
-        return Response.status(200).entity("{\"Status\":\"Ram (id: " + id +" Success!!!\"}").build();
+    public Response getRam(@PathParam("id") int id) throws JsonProcessingException{
+        ObjectMapper mapper = new ObjectMapper();
+        String resourceString;
+        try {
+            resourceString = mapper.writeValueAsString(Service.getQuantitaRam(id));
+            System.out.println("GET /ram/"+id);
+        } catch (JsonProcessingException ex) {
+            return Response.status(500).entity(new ObjectMapper().writeValueAsBytes(ex.getMessage())).build();
+        }
+        
+        return Response.status(200).entity(resourceString).build();
     }
     
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response putRam(@PathParam("id") String id, String content){
+    public Response putRam(@PathParam("id") int id, String content) throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Ram ram = mapper.readValue(content, Ram.class);
+        Service.setQuantitaRam(id, ram);
         System.out.println("PUT /ram/"+id);
         return Response.status(200).entity("RAM (id: " + id +" updated!!!").build();
         
@@ -49,13 +69,16 @@ public class RamResource {
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     
-    public Response postCpu(@PathParam("id") String id)
+    public Response postRam(@PathParam("id") int id, String content) throws IOException
             
     {   
+        ObjectMapper mapper = new ObjectMapper();
+        Ram ram = mapper.readValue(content, Ram.class);
+        Service.setQuantitaRam(id, ram);
         System.out.println("POST /ram/"+id);
-        Service.setQuantitaRam(Integer.valueOf(id),new Ram(id, 300));
+        //Service.setQuantitaRam(Integer.valueOf(id),new Ram(id, 300));
        // System.out.println("POST /cpu/"+id);
-        return Response.status(200).entity("Ram (id: " + id +" created!!!").build();
+        return Response.created(context.getAbsolutePath()).build();
     }
     
     @DELETE

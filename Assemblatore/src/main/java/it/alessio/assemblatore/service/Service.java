@@ -32,20 +32,20 @@ public class Service {
     private static Ram size[];
     private static HardDisk sizeHD[];
     
-    public static String getQuantita(int pos) {
+    public static Cpu getQuantita(int pos) {
         //return quantita.get(pos);
         System.out.println("OK!!!");
-        return Arrays.toString(quantita);
+        return quantita[pos];
     }
 
     public static void setQuantita(int pos, Cpu cpu) {
         System.out.println("Cpu creata!!!");
         quantita[pos] = cpu;
     }
-    public static String getQuantitaRam(int pos) {
+    public static Ram getQuantitaRam(int pos) {
         //return quantita.get(pos);
         System.out.println("OK!!!");
-        return Arrays.toString(size);
+        return size[pos];
     }
 
     public static void setQuantitaRam(int pos, Ram ram) {
@@ -57,8 +57,8 @@ public class Service {
         sizeHD[pos] = hd;
     }
 
-    public static String getQuantitaHD(int pos) {
-       return Arrays.toString(sizeHD);
+    public static HardDisk getQuantitaHD(int pos) {
+       return sizeHD[pos];
     }
     
     
