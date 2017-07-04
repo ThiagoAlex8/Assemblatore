@@ -73,6 +73,7 @@ public class Service {
         sizeHD = new HardDisk[20];
         
         client.withRegion(Regions.EU_WEST_1);
+        //client.setEndpoint("http://localhost/v1:8001");
         System.out.println("Starting Jersey REST-full Service with JDK HTTP Server ...");
         
         

@@ -5,12 +5,17 @@
  */
 package it.alessio.assemblatore.resources;
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.alessio.assemblatore.service.Service;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
@@ -24,6 +29,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -34,6 +40,8 @@ import javax.ws.rs.core.UriInfo;
 
 @Path("cpu")
 public class CpuResource {
+    //BasicAWSCredentials credentials = new BasicAWSCredentials("alessio.scarano","xxxxxxxx");          
+    //AmazonDynamoDBClient client = new AmazonDynamoDBClient(credentials);
     private static AmazonDynamoDBClient client;
     
     @Context
@@ -49,22 +57,20 @@ public class CpuResource {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getCpu(@PathParam("id") int id) throws JsonProcessingException{
-        ObjectMapper mapper = new ObjectMapper();
-        String resourceString;
-        try {
-            
-            resourceString = mapper.writeValueAsString(Service.getQuantita(id));
-            
-            System.out.println("GET /cpu/"+id);
-            //Service.getQuantita(Integer.valueOf(id));
-            //return Response.status(200).entity("{\"Status\":\"Cpu (id: " + id +") Success!!!\"}").build();
-            
-            
-        } catch (JsonProcessingException ex) {
-            return Response.status(500).entity(new ObjectMapper().writeValueAsBytes(ex.getMessage())).build();
+    public Response getCpu(@PathParam("id") String id){
+        DynamoDBMapper db_mapper = new DynamoDBMapper(client);
+        ObjectMapper obj_mapper = new ObjectMapper();
+        CpuMapper cpu;
+        try
+        {
+            cpu = db_mapper.load(CpuMapper.class, id, null);
+            return Response.status(200).entity(cpu).build();
         }
-        return Response.status(200).entity(resourceString).build();
+        catch (AmazonServiceException ase) 
+        {
+            System.out.println(ase.getErrorMessage());
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }    
     }
     
     @PUT
@@ -74,37 +80,62 @@ public class CpuResource {
     {
         DynamoDBMapper db_mapper = new DynamoDBMapper(client);
         ObjectMapper obj_mapper = new ObjectMapper();
-        CpuMapper cpu = obj_mapper.readValue(content, CpuMapper.class);
-        //cpu.setIdCpu(id);
-        db_mapper.save(cpu);
-        System.out.println("PUT /cpu/"+id);
-        return Response.status(200).entity("Cpu (id: " + id + ") updated!!! ").build();
+        CpuMapper cpu;
+        try
+        {
+            cpu = obj_mapper.readValue(content, CpuMapper.class);
+            db_mapper.save(cpu);
+            return Response.status(200).entity("Cpu (id: " + id + ") updated!!! ").build(); 
+        }
+        catch(AmazonServiceException ase)
+        {
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
+        
         
     }
     
     @POST
-    @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response postCpu(@PathParam("id") int id, String content) throws IOException
-            {   
+    public Response postCpu(@PathParam("id") String id, String content) throws IOException
+    {         
+        UUID uuid = UUID.randomUUID();
         DynamoDBMapper db_mapper = new DynamoDBMapper(client);
         ObjectMapper obj_mapper = new ObjectMapper();
-        CpuMapper cpu = obj_mapper.readValue(content, CpuMapper.class);
-        db_mapper.save(cpu);
+        CpuMapper cpu;
         
-        System.out.println(client.listTables().toString());
-        //Service.setQuantita(Integer.valueOf(id),new Cpu(id, 300));
-       // System.out.println("POST /cpu/"+id);
-        return Response.created(context.getAbsolutePath()).build();
+        try
+        {
+            cpu = obj_mapper.readValue(content, CpuMapper.class);
+            cpu.setUuid(uuid.toString());
+            db_mapper.save(cpu);
+            UriBuilder builder = context.getAbsolutePathBuilder();
+            builder.path(uuid.toString());
+            return Response.created(builder.build()).build();
+            
+        }
+        catch(AmazonServiceException ase)
+        {
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
     }
     
     @DELETE
     @Path("{id}")
     @Produces (MediaType.APPLICATION_JSON)
-    
-    public Response deleteCpu(@PathParam("id") String id)
+     public Response deleteCpu(@PathParam("id") String id) throws IOException
     {
-        return Response.status(200).entity("Cpu (id: " + id +") deleted!!!").build();
+        DynamoDBMapper db_mapper = new DynamoDBMapper(client);
+        //ObjectMapper obj_mapper = new ObjectMapper();
+        CpuMapper cpu;
+        try {   
+            cpu = db_mapper.load(CpuMapper.class,id);
+            db_mapper.delete(cpu);
+            return Response.status(200).entity("Cpu (id: " + id +") deleted!!!").build();
+        } catch (Exception ese) {
+            System.out.println(ese.getMessage());
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
     }
     
 }
