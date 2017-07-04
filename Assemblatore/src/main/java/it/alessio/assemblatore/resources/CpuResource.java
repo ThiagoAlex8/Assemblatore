@@ -5,6 +5,8 @@
  */
 package it.alessio.assemblatore.resources;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.alessio.assemblatore.service.Service;
@@ -32,10 +34,16 @@ import javax.ws.rs.core.UriInfo;
 
 @Path("cpu")
 public class CpuResource {
+    private static AmazonDynamoDBClient client;
+    
     @Context
     private UriInfo context;
     public CpuResource()
     {
+    }
+    public CpuResource(AmazonDynamoDBClient client)
+    {
+        this.client = client;
     }
     
     @GET
@@ -64,9 +72,11 @@ public class CpuResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response putCpu(@PathParam("id") int id, String content) throws IOException
     {
-        ObjectMapper mapper = new ObjectMapper();
-        Cpu cpu = mapper.readValue(content, Cpu.class);
-        Service.setQuantita(id, cpu);
+        DynamoDBMapper db_mapper = new DynamoDBMapper(client);
+        ObjectMapper obj_mapper = new ObjectMapper();
+        CpuMapper cpu = obj_mapper.readValue(content, CpuMapper.class);
+        //cpu.setIdCpu(id);
+        db_mapper.save(cpu);
         System.out.println("PUT /cpu/"+id);
         return Response.status(200).entity("Cpu (id: " + id + ") updated!!! ").build();
         
@@ -75,13 +85,14 @@ public class CpuResource {
     @POST
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    
     public Response postCpu(@PathParam("id") int id, String content) throws IOException
-            
-    {   
-        ObjectMapper mapper = new ObjectMapper();
-        Cpu cpu = mapper.readValue(content, Cpu.class);
-        Service.setQuantita(id, cpu);
+            {   
+        DynamoDBMapper db_mapper = new DynamoDBMapper(client);
+        ObjectMapper obj_mapper = new ObjectMapper();
+        CpuMapper cpu = obj_mapper.readValue(content, CpuMapper.class);
+        db_mapper.save(cpu);
+        
+        System.out.println(client.listTables().toString());
         //Service.setQuantita(Integer.valueOf(id),new Cpu(id, 300));
        // System.out.println("POST /cpu/"+id);
         return Response.created(context.getAbsolutePath()).build();

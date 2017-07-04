@@ -11,6 +11,8 @@ package it.alessio.assemblatore.service;
  */
 
 
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.sun.net.httpserver.HttpServer;
 import it.alessio.assemblatore.resources.Cpu;
 import it.alessio.assemblatore.resources.CpuResource;
@@ -31,6 +33,7 @@ public class Service {
     private static Cpu quantita[];
     private static Ram size[];
     private static HardDisk sizeHD[];
+    static AmazonDynamoDBClient client = new AmazonDynamoDBClient();
     
     public static Cpu getQuantita(int pos) {
         //return quantita.get(pos);
@@ -68,15 +71,17 @@ public class Service {
         quantita = new Cpu[20];
         size = new Ram[20];
         sizeHD = new HardDisk[20];
+        
+        client.withRegion(Regions.EU_WEST_1);
         System.out.println("Starting Jersey REST-full Service with JDK HTTP Server ...");
         
         
         URI baseUri = UriBuilder.fromUri("http://localhost/v1").port(8081).build();
         ResourceConfig config = new ResourceConfig();
         config.register(new Ping());
-        config.register(new CpuResource());
-        config.register(new RamResource());
-        config.register(new HardDiskResource());
+        config.register(new CpuResource(client));
+        config.register(new RamResource(client));
+        config.register(new HardDiskResource(client));
         HttpServer server = JdkHttpServerFactory.createHttpServer(baseUri, config);
 }
 

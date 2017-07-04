@@ -5,6 +5,7 @@
  */
 package it.alessio.assemblatore.resources;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.alessio.assemblatore.service.Service;
@@ -30,10 +31,18 @@ import javax.ws.rs.core.UriInfo;
  */
 @Path("hd")
 public class HardDiskResource {
+    private static AmazonDynamoDBClient client;
+    
+    
     @Context
     private UriInfo context;
     public HardDiskResource()
     {
+    }
+    
+    public HardDiskResource(AmazonDynamoDBClient client)
+    {
+        this.client = client;
     }
     
     @GET
