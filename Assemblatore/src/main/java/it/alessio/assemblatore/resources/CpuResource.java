@@ -40,8 +40,6 @@ import javax.ws.rs.core.UriInfo;
 
 @Path("cpu")
 public class CpuResource {
-    //BasicAWSCredentials credentials = new BasicAWSCredentials("alessio.scarano","xxxxxxxx");          
-    //AmazonDynamoDBClient client = new AmazonDynamoDBClient(credentials);
     private static AmazonDynamoDBClient client;
     
     @Context
@@ -85,14 +83,13 @@ public class CpuResource {
         {
             cpu = obj_mapper.readValue(content, CpuMapper.class);
             db_mapper.save(cpu);
+            //UriBuilder builder = context.getAbsolutePathBuilder()
             return Response.status(200).entity("Cpu (id: " + id + ") updated!!! ").build(); 
         }
         catch(AmazonServiceException ase)
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
-        }
-        
-        
+        }     
     }
     
     @POST
@@ -128,12 +125,12 @@ public class CpuResource {
         DynamoDBMapper db_mapper = new DynamoDBMapper(client);
         //ObjectMapper obj_mapper = new ObjectMapper();
         CpuMapper cpu;
-        try {   
+        try 
+        {   
             cpu = db_mapper.load(CpuMapper.class,id);
             db_mapper.delete(cpu);
             return Response.status(200).entity("Cpu (id: " + id +") deleted!!!").build();
         } catch (Exception ese) {
-            System.out.println(ese.getMessage());
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
     }

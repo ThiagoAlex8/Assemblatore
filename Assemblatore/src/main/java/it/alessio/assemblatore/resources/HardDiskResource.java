@@ -5,11 +5,14 @@
  */
 package it.alessio.assemblatore.resources;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.alessio.assemblatore.service.Service;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
@@ -23,6 +26,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 /**
@@ -67,35 +71,64 @@ public class HardDiskResource {
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response putHD(@PathParam("id") int id, String content) throws IOException{
-        ObjectMapper mapper = new ObjectMapper();
-        HardDisk hd = mapper.readValue(content, HardDisk.class);
-        Service.setQuantitaHD(id, hd);
-        System.out.println("PUT /hd/"+id);
-        return Response.status(200).entity("Hard disk (id: " + id + ") updated!!!").build();
+        DynamoDBMapper db_mapper = new DynamoDBMapper(client);
+        ObjectMapper obj_mapper = new ObjectMapper();
+        HardDiskMapper hd;
+        try{
+            hd = obj_mapper.readValue(content, HardDiskMapper.class);
+            db_mapper.save(hd);
+            return Response.status(200).entity("Hard disk (id: " + id + ") updated!!!").build();
+        }
+        catch(AmazonServiceException ase)
+        {
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
+        
         
     }
     
     @POST
-    @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    
-    public Response postCpu(@PathParam("id") int id, String content) throws IOException
-            
-    {   ObjectMapper mapper = new ObjectMapper();
-        HardDisk hd = mapper.readValue(content, HardDisk.class);
-        Service.setQuantitaHD(id, hd);
-        //System.out.println("POST /hd/"+id);
-       // System.out.println("POST /cpu/"+id);
-        return Response.created(context.getAbsolutePath()).build();
+    public Response postCpu(@PathParam("id") int id, String content) throws IOException    
+    {   
+        UUID uuid = UUID.randomUUID();
+        DynamoDBMapper db_mapper = new DynamoDBMapper(client);
+        ObjectMapper obj_mapper = new ObjectMapper();
+        HardDiskMapper hd;
+        try
+        {
+            hd = obj_mapper.readValue(content, HardDiskMapper.class);
+            hd.setUuid(uuid.toString());
+            db_mapper.save(hd);
+            UriBuilder builder = context.getAbsolutePathBuilder();
+            builder.path(uuid.toString());
+            return Response.created(builder.build()).build();
+        }
+        catch(AmazonServiceException ase)
+        {
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
     }
     
      @DELETE
     @Path("{id}")
     @Produces (MediaType.APPLICATION_JSON)
     
-    public Response deleteCpu(@PathParam("id") String id)
+    public Response deleteCpu(@PathParam("id") String id) throws IOException
     {
-        return Response.status(200).entity("Hard disk (id: " + id +" deleted!!!").build();
+        DynamoDBMapper db_mapper = new DynamoDBMapper(client);
+        HardDiskMapper hd;
+        try
+        {
+            hd = db_mapper.load(HardDiskMapper.class,id);
+            db_mapper.delete(hd);
+            return Response.status(200).entity("Cpu (id: " + id +") deleted!!!").build();
+        }
+        catch (Exception ese) 
+        {
+            System.out.println(ese.getMessage());
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
     }
     
 }
