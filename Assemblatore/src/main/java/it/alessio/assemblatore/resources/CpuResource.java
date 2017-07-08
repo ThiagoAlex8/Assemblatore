@@ -10,6 +10,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
+import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,9 +67,12 @@ public class CpuResource {
         }
         catch (AmazonServiceException ase) 
         {
-            System.out.println(ase.getErrorMessage());
-            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();     
         }    
+        finally
+        {
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
     }
     
     @PUT
@@ -79,17 +83,22 @@ public class CpuResource {
         DynamoDBMapper db_mapper = new DynamoDBMapper(client);
         ObjectMapper obj_mapper = new ObjectMapper();
         CpuMapper cpu;
+        UriBuilder builder = context.getAbsolutePathBuilder();
         try
         {
             cpu = obj_mapper.readValue(content, CpuMapper.class);
             db_mapper.save(cpu);
             //UriBuilder builder = context.getAbsolutePathBuilder()
-            return Response.status(200).entity("Cpu (id: " + id + ") updated!!! ").build(); 
+            return Response.created(builder.build()).build();
         }
-        catch(AmazonServiceException ase)
-        {
-            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        catch(ResourceNotFoundException ex)
+        {     
+           return Response.status(404).entity("{\"Status\":\"Resource not found").build();
         }     
+        finally
+        {
+             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
     }
     
     @POST
@@ -100,18 +109,22 @@ public class CpuResource {
         DynamoDBMapper db_mapper = new DynamoDBMapper(client);
         ObjectMapper obj_mapper = new ObjectMapper();
         CpuMapper cpu;
+        UriBuilder builder = context.getAbsolutePathBuilder();
         
         try
         {
             cpu = obj_mapper.readValue(content, CpuMapper.class);
             cpu.setUuid(uuid.toString());
             db_mapper.save(cpu);
-            UriBuilder builder = context.getAbsolutePathBuilder();
             builder.path(uuid.toString());
-            return Response.created(builder.build()).build();
+            return Response.created(builder.build()).build(); //Codice 201. Creata nuova risorsa
             
         }
-        catch(AmazonServiceException ase)
+        catch(ResourceNotFoundException ex)
+        {
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+        }
+        finally
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
@@ -129,8 +142,14 @@ public class CpuResource {
         {   
             cpu = db_mapper.load(CpuMapper.class,id);
             db_mapper.delete(cpu);
-            return Response.status(200).entity("Cpu (id: " + id +") deleted!!!").build();
-        } catch (Exception ese) {
+            return Response.status(204).entity("Cpu (id: " + id +") deleted!!!").build();
+        } 
+        catch (ResourceNotFoundException ex) 
+        {
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+        }
+        finally
+        {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
     }

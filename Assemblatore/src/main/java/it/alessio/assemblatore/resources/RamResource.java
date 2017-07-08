@@ -8,6 +8,7 @@ package it.alessio.assemblatore.resources;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.alessio.assemblatore.service.Service;
@@ -50,17 +51,23 @@ public class RamResource {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRam(@PathParam("id") int id) throws JsonProcessingException{
-        ObjectMapper mapper = new ObjectMapper();
-        String resourceString;
-        try {
-            resourceString = mapper.writeValueAsString(Service.getQuantitaRam(id));
-            System.out.println("GET /ram/"+id);
-        } catch (JsonProcessingException ex) {
-            return Response.status(500).entity(new ObjectMapper().writeValueAsBytes(ex.getMessage())).build();
+    public Response getRam(@PathParam("id") String id){
+        DynamoDBMapper db_mapper = new DynamoDBMapper(client);
+        ObjectMapper obj_mapper = new ObjectMapper();
+        RamMapper ram;
+        try 
+        {
+            ram = db_mapper.load(RamMapper.class,id,null);
+            return Response.status(200).entity(ram).build();
+        } 
+        catch (ResourceNotFoundException ex) 
+        {
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
         }
-        
-        return Response.status(200).entity(resourceString).build();
+        finally
+        {
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
     }
     
     @PUT
@@ -75,12 +82,16 @@ public class RamResource {
         {
             ram = obj_mapper.readValue(content, RamMapper.class);
             db_mapper.save(ram);
-            return Response.status(200).entity("RAM (id: " + id +" updated!!!").build();
+            return Response.status(200).entity("RAM updated!!!").build();
         }
-        catch(AmazonServiceException ase)
+        catch (ResourceNotFoundException ex) 
+        {
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+        }
+        finally
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
-        }     
+        }
     }
     
     @POST
@@ -103,7 +114,11 @@ public class RamResource {
             return Response.created(builder.build()).build();
             
         }
-        catch(AmazonServiceException ase)
+        catch (ResourceNotFoundException ex) 
+        {
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+        }
+        finally
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
@@ -121,9 +136,13 @@ public class RamResource {
         {
             ram = db_mapper.load(RamMapper.class,id);
             db_mapper.delete(ram);
-            return Response.status(200).entity("Cpu (id: " + id +") deleted!!!").build();
+            return Response.status(204).entity("Cpu (id: " + id +") deleted!!!").build();
         } 
-        catch (Exception ese) 
+        catch (ResourceNotFoundException ex) 
+        {
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+        }
+        finally
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }

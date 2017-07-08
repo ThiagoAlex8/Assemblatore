@@ -8,6 +8,7 @@ package it.alessio.assemblatore.resources;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.alessio.assemblatore.service.Service;
@@ -52,23 +53,25 @@ public class HardDiskResource {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getHD(@PathParam("id") int id) throws JsonProcessingException{
-        ObjectMapper mapper = new ObjectMapper();
-        String resourceString;
+    public Response getHD(@PathParam("id") String id){
+        DynamoDBMapper db_mapper = new DynamoDBMapper(client);
+        ObjectMapper obj_mapper = new ObjectMapper();
+        HardDiskMapper hd;
         try {
-            resourceString = mapper.writeValueAsString(Service.getQuantitaHD(id));
-            System.out.println("GET /hd/"+id);
-            //Service.getQuantitaHD(Integer.valueOf(id));
-            //return Response.status(200).entity("{\"Status\":\"Hard disk (id: " + id +") Success!!!\"}").build();
-        } catch (JsonProcessingException ex) {
-            return Response.status(500).entity(new ObjectMapper().writeValueAsBytes(ex.getMessage())).build();
+            hd = db_mapper.load(HardDiskMapper.class,id,null);
+            return Response.status(200).entity(hd).build();
+        } catch (ResourceNotFoundException ex) 
+        {
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
         }
-        return Response.status(200).entity(resourceString).build();
+        finally
+        {
+            return Response.status(500).entity("{\"Status\":\"Error\"}").build();
+        }
         
     }
     
     @PUT
-    @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response putHD(@PathParam("id") int id, String content) throws IOException{
         DynamoDBMapper db_mapper = new DynamoDBMapper(client);
@@ -77,9 +80,13 @@ public class HardDiskResource {
         try{
             hd = obj_mapper.readValue(content, HardDiskMapper.class);
             db_mapper.save(hd);
-            return Response.status(200).entity("Hard disk (id: " + id + ") updated!!!").build();
+            return Response.status(200).entity("Hard disk updated!!!").build();
         }
-        catch(AmazonServiceException ase)
+        catch (ResourceNotFoundException ex) 
+        {
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+        }
+        finally
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
@@ -104,7 +111,11 @@ public class HardDiskResource {
             builder.path(uuid.toString());
             return Response.created(builder.build()).build();
         }
-        catch(AmazonServiceException ase)
+        catch (ResourceNotFoundException ex) 
+        {
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+        }
+        finally
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
@@ -122,11 +133,14 @@ public class HardDiskResource {
         {
             hd = db_mapper.load(HardDiskMapper.class,id);
             db_mapper.delete(hd);
-            return Response.status(200).entity("Cpu (id: " + id +") deleted!!!").build();
+            return Response.status(204).entity("Cpu (id: " + id +") deleted!!!").build();
         }
-        catch (Exception ese) 
+        catch (ResourceNotFoundException ex) 
         {
-            System.out.println(ese.getMessage());
+            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+        }
+        finally
+        {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
     }
