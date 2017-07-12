@@ -17,7 +17,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
  *
  * @author aless
  */
-@DynamoDBTable(tableName = "CpuTableTest")
+@DynamoDBTable(tableName = "CpuTable")
 public class CpuMapper {
     private String idCpu;
     private double price;
@@ -30,7 +30,7 @@ public class CpuMapper {
     public String getUuid() {return uuid;}
     public void setUuid(String uuid) {this.uuid = uuid;}
     
-    @DynamoDBAttribute(attributeName = "IdCpu")
+    @DynamoDBIndexRangeKey(attributeName = "IdCpu", globalSecondaryIndexName = "BrandCpu-IdCpu-index")
     public String getIdCpu() {return idCpu;}
     public void setIdCpu(String idCpu) {this.idCpu = idCpu;}
 
@@ -38,7 +38,7 @@ public class CpuMapper {
     public double getPrice() {return price;}
     public void setPrice(double price) {this.price = price;}
 
-    @DynamoDBAttribute(attributeName = "BrandCpu")
+    @DynamoDBIndexHashKey(attributeName = "BrandCpu", globalSecondaryIndexName = "BrandCpu-IdCpu-index")
     public String getBrandCpu() {return brandCpu;}
     public void setBrandCpu(String brandCpu) {this.brandCpu = brandCpu;}
 

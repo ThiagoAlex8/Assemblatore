@@ -62,9 +62,10 @@ public class RamResource {
         } 
         catch (ResourceNotFoundException ex) 
         {
-            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+            
+            return Response.status(404).entity("{\"Status\":\"403, \n \"Message\":\"Resource not found}").build();
         }
-        finally
+        catch(Exception ex)
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
@@ -82,13 +83,14 @@ public class RamResource {
         {
             ram = obj_mapper.readValue(content, RamMapper.class);
             db_mapper.save(ram);
-            return Response.status(200).entity("RAM updated!!!").build();
+            return Response.status(201).entity("{\"Status\":\"201, \n \"Message\":\"Resource updated}").build();
         }
         catch (ResourceNotFoundException ex) 
         {
-            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+            
+            return Response.status(404).entity("{\"Status\":\"403, \n \"Message\":\"Resource not found}").build();
         }
-        finally
+        catch(Exception ex)
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
@@ -111,14 +113,15 @@ public class RamResource {
             db_mapper.save(ram);
             UriBuilder builder = context.getAbsolutePathBuilder();
             builder.path(uuid.toString());
-            return Response.created(builder.build()).build();
+            return Response.status(201).entity("{\"Status\":\"201, \n \"Message\":\"Resource created}").build();
             
         }
         catch (ResourceNotFoundException ex) 
         {
-            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+            
+            return Response.status(404).entity("{\"Status\":\"403, \n \"Message\":\"Resource not found}").build();
         }
-        finally
+        catch(Exception ex)
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }
@@ -136,13 +139,14 @@ public class RamResource {
         {
             ram = db_mapper.load(RamMapper.class,id);
             db_mapper.delete(ram);
-            return Response.status(204).entity("Cpu (id: " + id +") deleted!!!").build();
+            return Response.status(204).entity("{\"Status\":\"204, \n \"Message\":\"Resource deleted}").build();
         } 
         catch (ResourceNotFoundException ex) 
         {
-            return Response.status(404).entity("{\"Status\":\"Resource not found").build();
+            
+            return Response.status(404).entity("{\"Status\":\"403, \n \"Message\":\"Resource not found}").build();
         }
-        finally
+        catch(Exception ex)
         {
             return Response.status(500).entity("{\"Status\":\"Error\"}").build();
         }

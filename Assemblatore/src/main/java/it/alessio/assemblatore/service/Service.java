@@ -14,6 +14,7 @@ package it.alessio.assemblatore.service;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.sun.net.httpserver.HttpServer;
+import it.alessio.assemblatore.oauth.OpenId;
 import it.alessio.assemblatore.resources.Cpu;
 import it.alessio.assemblatore.resources.CpuResource;
 import it.alessio.assemblatore.resources.HardDisk;
@@ -25,7 +26,10 @@ import org.glassfish.jersey.server.ResourceConfig;
 import it.alessio.assemblatore.resources.Ping;
 import it.alessio.assemblatore.resources.Ram;
 import it.alessio.assemblatore.resources.RamResource;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Service {
     
@@ -65,7 +69,7 @@ public class Service {
     }
     
     
-    public static void main(String[] args)
+    public static void main(String[] args) throws URISyntaxException, IOException
     {
         //quantita = new ArrayList<Cpu>();
         quantita = new Cpu[20];
@@ -75,6 +79,15 @@ public class Service {
         client.withRegion(Regions.EU_WEST_1);
         //client.setEndpoint("http://localhost/v1:8001");
         System.out.println("Starting Jersey REST-full Service with JDK HTTP Server ...");
+        OpenId oid = new OpenId();
+        String state = oid.flowStepOne();
+        oid.flowStepTwo("openid email", state);
+        System.out.print("Inserisci l'url: ");
+        Scanner input = new Scanner(System.in);
+        String url = input.nextLine();
+        String response = oid.confirmResponse(url);
+        //System.out.println(state + "   " + response);
+        oid.StringControl(state, response);
         
         
         URI baseUri = UriBuilder.fromUri("http://localhost/v1").port(8081).build();
