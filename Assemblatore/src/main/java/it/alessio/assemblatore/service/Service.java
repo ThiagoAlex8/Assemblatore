@@ -88,6 +88,8 @@ public class Service {
         String response = oid.confirmResponse(url);
         //System.out.println(state + "   " + response);
         oid.StringControl(state, response);
+        String code = oid.getCode(url);
+        oid.exchangeCodeForAccessToken(code);
         
         
         URI baseUri = UriBuilder.fromUri("http://localhost/v1").port(8081).build();
